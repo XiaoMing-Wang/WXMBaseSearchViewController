@@ -11,11 +11,9 @@
 #define kH kSHeight - kNBarHeight
 #define kSearchH 50
 
-/** 导航栏高度 安全高度 */
 #define kNBarHeight ((kIPhoneX) ? 88.0f : 64.0f)
 #define kSafeHeight ((kIPhoneX) ? 25.0f : 0.0f)
 
-/** iphoneX */
 #define kIPhoneX \
 ({BOOL isPhoneX = NO;\
 if (@available(iOS 11.0, *)) {\
