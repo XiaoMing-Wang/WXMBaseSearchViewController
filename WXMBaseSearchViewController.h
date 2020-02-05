@@ -24,8 +24,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIView *previewView;
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) UISearchController *searchController;
+
+/** 搜索结果界面 */
 @property (nonatomic, strong) WXMSearchResultViewController *resultsVC;
 
+/// 子类重写加载
+/// @param cell cell
+/// @param data 数组
+/// @param index 下标
 - (void)loadCell:(UITableViewCell *)cell dataSource:(NSArray *)data index:(NSIndexPath *)index;
 
 @end
