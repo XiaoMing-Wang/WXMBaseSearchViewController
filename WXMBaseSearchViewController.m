@@ -9,7 +9,7 @@
 #define kSWidth [UIScreen mainScreen].bounds.size.width
 #define kSHeight [UIScreen mainScreen].bounds.size.height
 #define kH kSHeight - kNBarHeight
-#define kSearchH 50
+#define kSearchH 44
 
 #define kNBarHeight ((kIPhoneX) ? 88.0f : 64.0f)
 #define kSafeHeight ((kIPhoneX) ? 25.0f : 0.0f)
@@ -47,32 +47,51 @@ isPhoneX = [[UIApplication sharedApplication] delegate].window.safeAreaInsets.bo
 - (void)viewDidLoad {
     [super viewDidLoad];
   
+    self.navigationItem.title = @"搜索";
     UIImage *images = [self colorToImage:UIColor.whiteColor];
     self.definesPresentationContext = YES;
-    self.navigationController.navigationBar.translucent = YES; 
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+    self.navigationController.navigationBar.translucent = YES;
+    self.automaticallyAdjustsScrollViewInsets = YES;
+    
     [self.navigationController.navigationBar setBackgroundImage:images forBarMetrics:0];
     [self.navigationController.navigationBar setShadowImage:images];
     self.view.backgroundColor = [UIColor whiteColor];
     
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, kNBarHeight, kSWidth, kH)];
+    CGRect rect = CGRectMake(0, 0, kSWidth, kH);
+    self.tableView = [[UITableView alloc] initWithFrame:rect];
     self.tableView.rowHeight = self.rowHeight ?: 50;
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.tableHeaderView = self.searchController.searchBar;
+    self.tableView.backgroundColor = [UIColor redColor];
+   
     self.tableView.tableFooterView = [UIView new];
     self.tableView.backgroundColor = [UIColor whiteColor];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
-    
+        
     self.whiteFill = [[UIView alloc] initWithFrame:CGRectMake(0, -kSHeight, kSWidth, kSHeight)];
     self.whiteFill.backgroundColor = [UIColor whiteColor];
     [self.tableView addSubview:self.whiteFill];
-    
+      
+//    if (@available(iOS 11.0, *)) {
+//        self.navigationItem.searchController = self.searchController;
+//        self.navigationItem.hidesSearchBarWhenScrolling = NO;
+//        self.tableView.tableHeaderView = [UIView new];
+//    } else  {
+    self.tableView.tableHeaderView = self.searchController.searchBar;
+//    }
     [self.view addSubview:self.tableView];
-    NSArray *items = @[UISearchBar.class];
-    [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:items].title = @"取消";
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (@available(iOS 11.0, *)) {
+        self.navigationItem.hidesSearchBarWhenScrolling = YES;
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 22;
     return self.dataSource.count;
 }
 
@@ -103,7 +122,7 @@ isPhoneX = [[UIApplication sharedApplication] delegate].window.safeAreaInsets.bo
         } else if ([obj isKindOfClass:NSObject.class] && self.attributesKey) {
             value = [obj valueForKey:self.attributesKey];
         }  else if ([obj isKindOfClass:NSDictionary.class] && self.attributesKey) {
-            value = [obj objectForKey:self.attributesKey];
+            value = [(NSDictionary *)obj objectForKey:self.attributesKey];
         }
                     
         if (([value rangeOfString:searchText].location != NSNotFound)){
@@ -113,6 +132,31 @@ isPhoneX = [[UIApplication sharedApplication] delegate].window.safeAreaInsets.bo
     
     self.resultsVC.inputString = searchBar.text;
     self.resultsVC.dataSource = mutableArray;
+}
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    self.navigationController.interactivePopGestureRecognizer.enabled = NO;
+    [searchBar setShowsCancelButton:YES animated:YES];
+    for (UIView *view in [[searchBar.subviews lastObject] subviews]) {
+        if (@available(iOS 13.0, *)) {
+            for (UIView *buttonView in view.subviews) {
+                if ([buttonView isKindOfClass:[UIButton class]]) {
+                    UIButton *cancelBtn = (UIButton *)buttonView;
+                    [cancelBtn setTitle:@" 取消 " forState:UIControlStateNormal];
+                }
+            }
+        } else {
+            if ([view isKindOfClass:[UIButton class]]) {
+                UIButton * cancleBtn = (UIButton *)view;
+                [cancleBtn setTitle:@" 取消 " forState:UIControlStateNormal];
+            }
+        }
+    }
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [searchBar setShowsCancelButton:NO animated:YES];
+    self.navigationController.interactivePopGestureRecognizer.enabled = YES;
 }
 
 - (void)loadCell:(UITableViewCell *)cell dataSource:(NSArray *)data index:(NSIndexPath *)index {
@@ -128,13 +172,16 @@ isPhoneX = [[UIApplication sharedApplication] delegate].window.safeAreaInsets.bo
     if (!_searchController) {
         _searchController =
         [[UISearchController alloc] initWithSearchResultsController:self.resultsVC];
-        _searchController.searchBar.frame = CGRectMake(0, 0, kSWidth, kSearchH);
+        _searchController.searchBar.frame = CGRectMake(0, 0, kSWidth, 20);
         _searchController.searchBar.backgroundColor = [UIColor whiteColor];
         _searchController.searchBar.barTintColor = [UIColor whiteColor];
         _searchController.searchBar.delegate = self;
         _searchController.searchResultsUpdater = self;
         _searchController.dimsBackgroundDuringPresentation = NO;
         _searchController.hidesNavigationBarDuringPresentation = YES;
+        _searchController.searchBar.placeholder = @"搜索";
+        [_searchController.searchBar sizeToFit];
+        _searchController.searchBar.tintColor = [UIColor colorWithRed:0 green:(190 / 255.0) blue:(12 / 255.0) alpha:1];
         
         UIImage *backgroundImage = [self colorToImage:UIColor.whiteColor];
         [_searchController.searchBar setBackgroundImage:backgroundImage];
